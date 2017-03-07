@@ -1,0 +1,8 @@
+<frame>
+	<frame side='left'>	
+		<frame name='frame1' side='top' />
+		<frame name='frame2' side='top' />
+	</frame>
+	<frame name='frame3' side='top'/>
+	<frame name='frame4' side='top'/>
+</frame>
