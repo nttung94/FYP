@@ -72,7 +72,7 @@ class MainProgram():
         for item, parent in MainProgram.Structure.items():
             if parent == subTopicSelection:            
                 self.app = item
-        self.descriptionLabel.change_text('DESCRIPTION: '+self.app.find('description').text)
+        self.descriptionLabel.change_text('DESCRIPTION: '+str(self.app.find('description').text))
         
     def startApp(self):
         try:
