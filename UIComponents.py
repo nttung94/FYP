@@ -9,15 +9,9 @@ import scipy.signal as sgl
 import matplotlib.patches as patches
 
 class Label:
-    def __init__(self, frame, **kwargs):
-        KEY_TEXT = 'text'
-        KEY_SIDE = 'side'
-        
-        self.__label = Tk.Label(frame)
-        try:    self.__label.config(text=kwargs[KEY_TEXT])
-        except: pass
-        try:    self.__label.pack(side=kwargs[KEY_SIDE])
-        except: self.__label.pack()
+    def __init__(self, frame, side='top', **kwargs):        
+        self.__label = Tk.Label(frame, **kwargs)
+        self.__label.pack(side=side)
                       
     def change_text(self, text):
         self.__label.config(text=text)
@@ -26,49 +20,28 @@ class Label:
         return self.__label
         
 class LabelEntry:
-    def __init__(self, frame, **kwargs):
+    def __init__(self, frame, text=None, orient='horizontal', labelwidth=0, command=lambda *args:None,
+                 entrywidth=20, defaultvalue="", side='top', **kwargs):
         
-        KEY_TEXT = 'text'
-        KEY_ORIENT = 'orient'        
-        KEY_LABELWIDTH = 'labelwidth'
-        KEY_ENTRYWIDTH = 'entrywidth'
-        KEY_COMMAND = 'command'
-        KEY_DEFAULTVALUE = 'defaultvalue'
-        KEY_SIDE = 'side'
-        
-        try:    orient = kwargs[KEY_ORIENT]
-        except: orient = 'horizontal'
         if orient=='horizontal':
             self.__packSide = Tk.LEFT 
         else:
             self.__packSide = Tk.TOP
         
         self.mainFrame = Tk.Frame(frame)
-        try:    self.mainFrame.pack(kwargs[KEY_SIDE])
-        except: self.mainFrame.pack()
+        self.mainFrame.pack(side=side)
         
-        self.__label = Tk.Label(self.mainFrame)
+        self.__label = Tk.Label(self.mainFrame, text=text, width=labelwidth)
         self.__label.pack(side=self.__packSide)
-        try:    self.__label.config(text=kwargs[KEY_TEXT])
-        except: pass
-        try:    self.__label.config(width=kwargs[KEY_LABELWIDTH])
-        except: pass
         
-        self.__entry = Tk.Entry(self.mainFrame)
+        self.__entry = Tk.Entry(self.mainFrame, width=entrywidth)
         self.__entry.pack(side=self.__packSide)
-        try:    self.__entry.config(width=kwargs[KEY_ENTRYWIDTH])
-        except: pass
-        try:    self.__entry.bind('<Return>', kwargs[KEY_COMMAND])
-        except: pass
-        try:    self.__entry.insert(0, kwargs[KEY_DEFAULTVALUE])
-        except: pass
+        self.__entry.bind('<Return>', command)
+        self.__entry.insert(0, defaultvalue)
         
-        
-    #Get value of the entry
     def get(self):
         return self.__entry.get()
     
-    #clear value of the entry
     def clear(self):
         self.__entry.delete(0, Tk.END)
         
@@ -96,44 +69,31 @@ class LabelEntry:
         return self.__entry
 
 class Button:
-    def __init__(self, frame, **kwargs):
-        KEY_TEXT = 'text'
-        KEY_COMMAND = 'command'            
-        KEY_SIDE = 'side'
-        
-        self.__button = Tk.Button(frame)
-        try:    self.__button.config(text=kwargs[KEY_TEXT])
-        except: pass
-        try:    self.__button.config(command=kwargs[KEY_COMMAND])
-        except: pass
-        try:    self.__button.pack(side=kwargs[KEY_SIDE])
-        except: self.__button.pack()
+    def __init__(self, frame, side='top', **kwargs):           
+        mainFrame = Tk.Frame(frame)
+        mainFrame.pack(side=side)
+        self.__button = Tk.Button(mainFrame, **kwargs)
+        self.__button.pack()
                       
     def get_button(self):
         return self.__button
         
 class Checkbutton:
-    def __init__(self, frame, list, **kwargs):
-        side=Tk.TOP
-        if 'side' in kwargs:
-            side = kwargs['side']
+    def __init__(self, frame, list, side='top', orient='horizontal', **kwargs):
         mainFrame = Tk.Frame(frame)
-        mainFrame.pack(side=side)        
-        orient = 'horizontal'
-        if 'orient' in kwargs:
-            orient = kwargs['orient']
+        mainFrame.pack(side=side)
+        
         packSide = Tk.TOP
         if orient == 'horizontal':
             packSide= Tk.LEFT
-        command = None
-        if 'command' in kwargs:
-            command = kwargs['command']
+        
         n= len(list)
         defaultValue=[]
         for i in range(n):
             defaultValue.append(0)
         if 'defaultvalue' in kwargs:
-            defaultValue = kwargs['defaultvalue']
+            defaultValue = kwargs.pop('defaultvalue')
+            
         self.CheckVar=[]
         for value in defaultValue:
             var = Tk.IntVar()
@@ -141,7 +101,7 @@ class Checkbutton:
             self.CheckVar.append(var)
         self.checkButtonList =[]
         for i in range(n):
-            cb = Tk.Checkbutton(mainFrame, text=list[i], variable=self.CheckVar[i], onvalue=1, offvalue=0, command=command)
+            cb = Tk.Checkbutton(mainFrame, text=list[i], variable=self.CheckVar[i], **kwargs)
             cb.pack(side=packSide)
             self.checkButtonList.append(cb)
             
@@ -150,29 +110,16 @@ class Checkbutton:
         for element in self.CheckVar:
             value.append(element.get())
         return value
-        
-    def config_checkbutton(self, id, **kwargs):
-        self.checkButtonList[id].config(**kwargs)
-        
+                
     def get_checkbutton(self, id):
         return self.checkButtonList[id]
         
 class Entry:
-    def __init__(self, frame, **kwargs):
-        KEY_SIDE = 'side'  
-        KEY_COMMAND = 'command'
-        KEY_DEFAULTVALUE = 'defaultvalue'
-        try:    command = kwargs.pop(KEY_COMMAND)
-        except: command = None
-        try:    side = kwargs.pop(KEY_SIDE)
-        except: side = Tk.TOP
-        try:    defaultValue = kwargs.pop(KEY_DEFAULTVALUE)
-        except: defaultValue = None
-
+    def __init__(self, frame, side='top', defaultvalue='', command=lambda *args:None, **kwargs):
         mainFrame = Tk.Frame(frame)
         mainFrame.pack(side=side)
         self.entry = Tk.Entry(mainFrame, **kwargs)
-        self.entry.insert(0, defaultValue)
+        self.entry.insert(0, defaultvalue)
         self.entry.bind('<Return>', command)
         self.entry.pack()
         
@@ -193,18 +140,11 @@ class Entry:
         return self.entry
         
 class Listbox:
-    def __init__(self, frame, list, width=20, **kwargs):
-        command = None
-        if 'command' in kwargs:
-            command = kwargs['command']
+    def __init__(self, frame, list, side='top', defaultvalue=None, command=lambda *args:None, **kwargs):
      
-        defaultValue =None
-        if 'defaultvalue' in kwargs:
-            defaultValue = kwargs['defaultvalue']
-        
         height= len(list)
         if 'height' in kwargs:
-            height = kwargs['height']
+            height = kwargs.pop('height')
         yscrollcommand = None
         if height<len(list):
             scrollbar = Tk.Scrollbar(frame)
@@ -213,17 +153,15 @@ class Listbox:
         
         self.__selectmode = 'browse'
         if 'selectmode' in kwargs:
-            self.__selectmode = kwargs['selectmode']
-        if self.__selectmode == 'browse':
-            select_config = Tk.BROWSE
-        else:
-            select_config = Tk.MULTIPLE
+            self.__selectmode = kwargs.pop('selectmode')
+        
         if 'label' in kwargs:
-            labelframe = Tk.LabelFrame(frame, text=kwargs['label'])
-            labelframe.pack()
-            self.listbox = Tk.Listbox(labelframe, exportselection=False,width=width, height=height, selectmode=select_config, yscrollcommand=yscrollcommand)
+            mainFrame = Tk.LabelFrame(frame, text=kwargs.pop('label'))
         else:
-            self.listbox = Tk.Listbox(frame, exportselection=False, height=height, selectmode=select_config, yscrollcommand=yscrollcommand)
+            mainFrame = Tk.Frame(frame)
+        mainFrame.pack(side=side)
+        self.listbox = Tk.Listbox(mainFrame, exportselection=False, height=height, 
+                                  selectmode=self.__selectmode, yscrollcommand=yscrollcommand, **kwargs)
         try:
             scrollbar.config(command = self.listbox.yview)
         except:
@@ -231,11 +169,11 @@ class Listbox:
         for element in list:
             self.listbox.insert(Tk.END, element)
         self.listbox.bind('<<ListboxSelect>>', command)
-        if defaultValue!=None:        
+        if defaultvalue!=None:        
             try:
-                self.listbox.select_set(defaultValue)
+                self.listbox.select_set(defaultvalue)
             except:
-                for value in defaultValue:
+                for value in defaultvalue:
                     self.listbox.select_set(value)
         self.listbox.pack()
         
@@ -264,29 +202,21 @@ class Listbox:
         return self.listbox.get(select)
             
 class Radiobutton:
-    def __init__(self, frame, list, **kwargs):
+    def __init__(self, frame, list, side='top', orient='horizontal', command=lambda *args:None, defaultvalue=None, **kwargs):
         self.mainFrame=Tk.Frame(frame)
-        self.mainFrame.pack()
-        orient = 'horizontal'
-        if 'orient' in kwargs:
-            orient = kwargs['orient']
+        self.mainFrame.pack(side=side)
         self.packSide = Tk.TOP
         if orient == 'horizontal':
             self.packSide= Tk.LEFT
-        command = None
-        if 'command' in kwargs:
-            command = kwargs['command']
+
         n= len(list)
-        
-        defaultValue=None
-        if 'defaultvalue' in kwargs:
-            defaultValue = kwargs['defaultvalue']
+    
         self.__radioVar = Tk.IntVar()
-        if defaultValue!=None:
-            self.__radioVar.set(defaultValue)
+        if defaultvalue!=None:
+            self.__radioVar.set(defaultvalue)
         self.radioButtonList =[]
         for i in range(n):
-            rb = Tk.Radiobutton(self.mainFrame, text=list[i], variable=self.__radioVar, value=i, command=command)
+            rb = Tk.Radiobutton(self.mainFrame, text=list[i], variable=self.__radioVar, value=i, command=command, **kwargs)
             rb.pack(side=self.packSide)
             self.radioButtonList.append(rb)
             
@@ -309,175 +239,16 @@ class Radiobutton:
         for rb in self.radioButtonList:
             rb.pack_forget()
         
-class Figure:
-    def __init__(self, frame, side='top', **kwargs):
-        try:
-            self.figsize = kwargs['figsize']
-        except:
-            self.figsize = None
-        try:
-            self.dpi = kwargs['dpi']
-        except:
-            self.dpi = None
-        self.__frame = Tk.Frame(frame)
-        self.__frame.pack(side=side)
-        self.__figure = fg.Figure(figsize=self.figsize, dpi=self.dpi, facecolor='w')
-        self.__canvas = tkagg.FigureCanvasTkAgg(self.__figure, self.__frame)
-        self.__grid=[1,1]
-        if 'grid' in kwargs:
-             self.__grid = kwargs['grid']
-        else:
-            self.axAni = self.__figure.add_subplot(111)
-        self.__canvas.show()
-        self.__canvas.get_tk_widget().pack(fill=Tk.BOTH, expand=1)
-        self.__canvas._tkcanvas.pack(fill=Tk.BOTH, expand=1)
-        
-    def plot(self, x, y, *args, **kwargs):
-        if 'update' in args:
-            self.reset()
-#            try:
-#                self.__canvas.get_tk_widget().destroy()
-#                self.__figure = fg.Figure(figsize=self.figsize, dpi=self.dpi, facecolor='w')
-#            except:
-#                pass
-        id=1
-        if 'id' in kwargs:
-            id = kwargs['id']
-            ax = self.__figure.add_subplot(self.__grid[0], self.__grid[1], id)
-        else:
-            ax = self.axAni
-        try:
-            xlim = kwargs['xlim']
-            ax.set_xlim(xlim[0], xlim[1])
-        except:
-            pass
-        try:
-            ylim = kwargs['ylim']
-            ax.set_ylim(ylim[0], ylim[1])
-        except:
-            pass
-        if 'title' in kwargs:
-            ax.set_title(kwargs['title'])
-        if 'xlabel' in kwargs:
-            ax.set_xlabel(kwargs['xlabel'])
-        if 'ylabel' in kwargs:
-            ax.set_ylabel(kwargs['ylabel'])
-        if 'color' in kwargs:
-            color = kwargs['color']
-        else:
-            color = 'b'
-        try:
-            if kwargs['plot_type']=='stem':
-                markerline, stemlines, baseline = ax.stem(x,y, color)
-            if kwargs['plot_type']=='scatter':
-                markerline, stemlines, baseline = ax.scatter(x,y, color)
-        except:
-            markerline, = ax.plot(x,y, color)
-        
-        if 'markeredgecolor' in kwargs:
-            plt.setp(markerline, 'markeredgecolor', kwargs['markeredgecolor'])
-        if 'markerfacecolor' in kwargs:
-            plt.setp(markerline, 'markerfacecolor', kwargs['markerfacecolor'])
-        if 'baseline' in kwargs:
-            plt.setp(baseline, 'color', kwargs['baseline'])
-        if 'stemline' in kwargs:
-            plt.setp(stemlines, 'color', kwargs['stemlines'])
-#        if 'update' in args:
-#            self.__canvas = tkagg.FigureCanvasTkAgg(self.__figure, self.__frame)
-#            self.__canvas.get_tk_widget().pack(fill=Tk.BOTH, expand=1)
-#            self.__canvas._tkcanvas.pack(fill=Tk.BOTH, expand=1)
-        self.__canvas.show()
-        return markerline
-   
-    def get_lines(self, number, *args):
-        lines = []
-        if 'update' in args:
-            if 'keep_ratio' in args:
-                self.reset('keep_ratio')
-            else:
-                self.reset()
-#        self.axAni = self.__figure.add_subplot(111)
-#        self.axAni = self.__figure.add_subplot(1,1,1, adjustable='box', aspect=1)
-        for i in range (number):
-            if 'stem' in args:
-                line, stemline, baseline =self.axAni.stem([0],[0])
-                plt.setp(stemline, 'color', 'b')
-                plt.setp(baseline, 'color', 'r')
-            else:
-                line, = self.axAni.plot([],[])
-            lines.append(line)
-        return lines
-                 
-    def startAnimation(self, callback, iterable, interval=10, xlim=[None, None], ylim=[None, None]):
-        for i in iterable:
-            self.__frame.after(interval, callback(i))
-#            self.axAni.set_aspect('auto')
-            self.axAni.relim()
-            self.axAni.autoscale_view(True,True,True)
-            self.axAni.set_xlim(xlim)
-            self.axAni.set_ylim(ylim)
-            self.__canvas.show()
-    
-    def get_canvas(self):
-        return self.__canvas
-        
-    def get_ax(self):
-        return self.axAni
-        
-    def plot_line(self, x, y, line, xlim=[None, None], ylim=[None, None], title="", xlabel="", ylabel=""):
-        line.set_data(x,y)
-        self.axAni.relim()
-        self.axAni.autoscale_view(True,True,True)
-        self.axAni.set_xlim(xlim)
-        self.axAni.set_ylim(ylim)
-        self.axAni.set_title(title)
-        self.axAni.set_xlabel(xlabel)
-        self.axAni.set_ylabel(ylabel)
-        self.__canvas.show()
-        
-    def reset(self, *args):
-        try:
-            self.__canvas.get_tk_widget().destroy()
-            self.__figure = fg.Figure(figsize=self.figsize, dpi=self.dpi, facecolor='w')
-            self.__canvas = tkagg.FigureCanvasTkAgg(self.__figure, self.__frame)
-            self.__canvas.get_tk_widget().pack(fill=Tk.BOTH, expand=1)
-            if 'keep_ratio' in args:
-                self.axAni = self.__figure.add_subplot(1,1,1, adjustable='box', aspect=1)
-            else:
-                self.axAni = self.__figure.add_subplot(111)
-        except:
-            pass
             
 class EntryScale:
-    def __init__(self, frame, **kwargs):
+    def __init__(self, frame, side='top', text=None, defaultvalue=0, from_=-50, to=50, orient='horizontal', command=lambda *args:None, **kwargs):
         mainFrame = Tk.Frame(frame)
-        mainFrame.pack()
-        try:
-            text = kwargs['text']
-        except:
-            text = None
-        try:
-            defaultValue = kwargs['defaultvalue']
-        except:
-            defaultValue = 0
-        try:
-            from_ = kwargs['from']
-            to = kwargs['to']
-        except:
-            from_ = -50
-            to = 50
-        try:
-            orient = kwargs['orient']
-        except:
-            orient = 'horizontal'
-        try:
-            self.command = kwargs['command']
-        except:
-            self.command = None
-        self.__entry = LabelEntry(mainFrame, text=text, defaultvalue=defaultValue, command=self.updateEntry)
-        self.__scale = Tk.Scale(mainFrame, from_=from_, to=to, orient=orient)
+        mainFrame.pack(side=side)
+        self.command = command
+        self.__entry = LabelEntry(mainFrame, text=text, defaultvalue=defaultvalue, command=self.updateEntry)
+        self.__scale = Tk.Scale(mainFrame, from_=from_, to=to, orient=orient, **kwargs)
         self.__scale.bind("<ButtonRelease-1>", self.updateScale)
-        self.__scale.set(defaultValue)
+        self.__scale.set(defaultvalue)
         self.__scale.pack()
         
     def updateEntry(self, event):
@@ -817,3 +588,132 @@ class DraggablePoint:
             self.rect.center = (x, y)
         if self.shape == 'rectangle':
             self.rect.set_xy((x,y))
+            
+class Figure:
+    def __init__(self, frame, side='top', figsize=None, dpi=None, **kwargs):
+        self.figsize = figsize
+        self.dpi = dpi
+        
+        self.__frame = Tk.Frame(frame)
+        self.__frame.pack(side=side)
+        self.__figure = fg.Figure(figsize=self.figsize, dpi=self.dpi, facecolor='w')
+        self.__canvas = tkagg.FigureCanvasTkAgg(self.__figure, self.__frame)
+        self.__grid=[1,1]
+        if 'grid' in kwargs:
+             self.__grid = kwargs['grid']
+        else:
+            self.axAni = self.__figure.add_subplot(111)
+        self.__canvas.show()
+        self.__canvas.get_tk_widget().pack(fill=Tk.BOTH, expand=1)
+        self.__canvas._tkcanvas.pack(fill=Tk.BOTH, expand=1)
+        
+    def plot(self, x, y, *args, **kwargs):
+        if 'update' in args:
+            self.reset()
+        id=1
+        if 'id' in kwargs:
+            id = kwargs['id']
+            ax = self.__figure.add_subplot(self.__grid[0], self.__grid[1], id)
+        else:
+            ax = self.axAni
+        try:
+            xlim = kwargs['xlim']
+            ax.set_xlim(xlim[0], xlim[1])
+        except:
+            pass
+        try:
+            ylim = kwargs['ylim']
+            ax.set_ylim(ylim[0], ylim[1])
+        except:
+            pass
+        if 'title' in kwargs:
+            ax.set_title(kwargs['title'])
+        if 'xlabel' in kwargs:
+            ax.set_xlabel(kwargs['xlabel'])
+        if 'ylabel' in kwargs:
+            ax.set_ylabel(kwargs['ylabel'])
+        if 'color' in kwargs:
+            color = kwargs['color']
+        else:
+            color = 'b'
+        try:
+            if kwargs['plot_type']=='stem':
+                markerline, stemlines, baseline = ax.stem(x,y, color)
+            if kwargs['plot_type']=='scatter':
+                markerline, stemlines, baseline = ax.scatter(x,y, color)
+        except:
+            markerline, = ax.plot(x,y, color)
+        
+        if 'markeredgecolor' in kwargs:
+            plt.setp(markerline, 'markeredgecolor', kwargs['markeredgecolor'])
+        if 'markerfacecolor' in kwargs:
+            plt.setp(markerline, 'markerfacecolor', kwargs['markerfacecolor'])
+        if 'baseline' in kwargs:
+            plt.setp(baseline, 'color', kwargs['baseline'])
+        if 'stemline' in kwargs:
+            plt.setp(stemlines, 'color', kwargs['stemlines'])
+#        if 'update' in args:
+#            self.__canvas = tkagg.FigureCanvasTkAgg(self.__figure, self.__frame)
+#            self.__canvas.get_tk_widget().pack(fill=Tk.BOTH, expand=1)
+#            self.__canvas._tkcanvas.pack(fill=Tk.BOTH, expand=1)
+        self.__canvas.show()
+        return markerline
+   
+    def get_lines(self, number, *args):
+        lines = []
+        if 'update' in args:
+            if 'keep_ratio' in args:
+                self.reset('keep_ratio')
+            else:
+                self.reset()
+#        self.axAni = self.__figure.add_subplot(111)
+#        self.axAni = self.__figure.add_subplot(1,1,1, adjustable='box', aspect=1)
+        for i in range (number):
+            if 'stem' in args:
+                line, stemline, baseline =self.axAni.stem([0],[0])
+                plt.setp(stemline, 'color', 'b')
+                plt.setp(baseline, 'color', 'r')
+            else:
+                line, = self.axAni.plot([],[])
+            lines.append(line)
+        return lines
+                 
+    def startAnimation(self, callback, iterable, interval=10, xlim=[None, None], ylim=[None, None]):
+        for i in iterable:
+            self.__frame.after(interval, callback(i))
+#            self.axAni.set_aspect('auto')
+            self.axAni.relim()
+            self.axAni.autoscale_view(True,True,True)
+            self.axAni.set_xlim(xlim)
+            self.axAni.set_ylim(ylim)
+            self.__canvas.show()
+    
+    def get_canvas(self):
+        return self.__canvas
+        
+    def get_ax(self):
+        return self.axAni
+        
+    def plot_line(self, x, y, line, xlim=[None, None], ylim=[None, None], title="", xlabel="", ylabel=""):
+        line.set_data(x,y)
+        self.axAni.relim()
+        self.axAni.autoscale_view(True,True,True)
+        self.axAni.set_xlim(xlim)
+        self.axAni.set_ylim(ylim)
+        self.axAni.set_title(title)
+        self.axAni.set_xlabel(xlabel)
+        self.axAni.set_ylabel(ylabel)
+        self.__canvas.show()
+        
+    def reset(self, *args):
+        try:
+            self.__canvas.get_tk_widget().destroy()
+            self.__figure = fg.Figure(figsize=self.figsize, dpi=self.dpi, facecolor='w')
+            self.__canvas = tkagg.FigureCanvasTkAgg(self.__figure, self.__frame)
+            self.__canvas.get_tk_widget().pack(fill=Tk.BOTH, expand=1)
+            if 'keep_ratio' in args:
+                self.axAni = self.__figure.add_subplot(1,1,1, adjustable='box', aspect=1)
+            else:
+                self.axAni = self.__figure.add_subplot(111)
+        except:
+            pass
